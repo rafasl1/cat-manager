@@ -1,50 +1,56 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { Cat } from 'src/classes/cat.class';
+import { catsMock } from 'src/mocks/cats.mock';
 
 @Injectable()
 export class CatService {
-    private catsArray: Array<Cat>;
+    private catsArray: Array<Cat> = catsMock;
 
     public getCats(): Cat[] {
-        this.createMy2Cats();
         return this.catsArray;
     }
 
-    public postCat(cat: Cat) {
-        return this.catsArray.push(cat);
-    }
-
-    public getCatById(id: number): Cat {
-        const searchedCat = this.catsArray.find(cat => cat.id === id);
-        if(!searchedCat) {
-            throw new HttpException(`Cannot find cat with id ${id}`, 404);
-        }
-        return searchedCat;
-    }
-
-    public deleteCat(id: number): Cat[] {
-        const searchedCatPosition = this.catsArray.findIndex(cat => cat.id === id);
-        if(searchedCatPosition === -1) {
-            throw new HttpException(`Cannot find cat with id ${id}`, 404);
-        }
-        this.catsArray.splice(searchedCatPosition, 1);
+    public postCat(cat: Cat): Cat[] {
+        this.catsArray.push(cat);
         return this.catsArray;
     }
 
-    public putCatById(id: number, propertyName: string, propertyValue: string) {
-        const searchedCatPosition = this.catsArray.findIndex(cat => cat.id === id);
-        if(searchedCatPosition === -1) {
-            throw new HttpException(`Cannot find cat with id ${id}`, 404);
-        }
-        this.catsArray[searchedCatPosition][propertyName] = propertyValue;
-        return 
+    public getCatById(id: number): Promise<Cat> {
+        const catId = Number(id);
+        return new Promise(resolve => {
+            const searchedCat = this.catsArray.find(cat => cat.id === catId);
+            if(!searchedCat) {
+                throw new HttpException(`Cannot find cat with id ${id}`, 404);
+            }
+            return resolve(searchedCat);
+        });
     }
 
-    private createMy2Cats(): void {
-        const floco = new Cat("Floco", "Albino");
-        const pe = new Cat("Pê", "Siames");
+    public deleteCat(id: number): Promise<Cat[]> {
+        const catId = Number(id);
+        return new Promise(resolve => {
+            const searchedCatPosition = this.catsArray.findIndex(cat => cat.id === catId);
+            if(searchedCatPosition === -1) {
+                throw new HttpException(`Cannot find cat with id ${id}`, 404);
+            }
+            this.catsArray.splice(searchedCatPosition, 1);
+            return resolve(this.catsArray);
+        });
+    }
 
-        this.postCat(floco);
-        this.postCat(pe);
+    public putCatById(
+        id: number, 
+        propertyName: string, 
+        propertyValue: string
+    ): Promise<Cat> {
+        const catId = Number(id);
+        return new Promise(resolve => {
+            const searchedCatPosition = this.catsArray.findIndex(cat => cat.id === catId);
+            if(searchedCatPosition === -1) {
+                throw new HttpException(`Cannot find cat with id ${id}`, 404);
+            }
+            this.catsArray[searchedCatPosition][propertyName] = propertyValue;
+            return resolve(this.catsArray[searchedCatPosition]);
+        });
     }
 }
